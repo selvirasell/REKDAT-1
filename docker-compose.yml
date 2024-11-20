@@ -1,6 +1,6 @@
-version: '3'
+version: '3.8'
 services:
-  postgres:
+  postgres:  # Opsional jika PostgreSQL lokal tetap diperlukan
     image: postgres:13
     container_name: postgres_db
     environment:
@@ -12,5 +12,45 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  airflow-webserver:
+    image: apache/airflow:2.6.1
+    container_name: airflow_webserver
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      # PostgreSQL Aiven Connection
+      #- AIRFLOW_CONN_AIVEN_POSTGRES=postgresql+psycopg2://avnadmin:<password>@rekdat-rekdat.e.aivencloud.com:11360/defaultdb?sslmode=require
+      # Alpha Vantage API Connection
+      - AIRFLOW_CONN_ALPHA_VANTAGE_API=http://:@https://www.alphavantage.co
+    ports:
+      - "8080:8080"
+    depends_on:
+      - airflow-scheduler
+    networks:
+      - airflow_network
+    volumes:
+      - ./dags:/opt/airflow/dags
+
+  airflow-scheduler:
+    image: apache/airflow:2.6.1
+    container_name: airflow_scheduler
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      # PostgreSQL Aiven Connection
+      - AIRFLOW_CONN_AIVEN_POSTGRES=postgresql+psycopg2://avnadmin:<AIVEN_PASSWORD>@rekdat-rekdat.e.aivencloud.com:11360/defaultdb?sslmode=require
+      # Alpha Vantage API Connection
+      - AIRFLOW_CONN_ALPHA_VANTAGE_API=http://:@https://www.alphavantage.co
+    depends_on:
+      - postgres
+    networks:
+      - airflow_network
+    volumes:
+      - ./dags:/opt/airflow/dags
+
 volumes:
   postgres_data:
+
+networks:
+  airflow_network:
+    driver: bridge
