@@ -8,12 +8,12 @@ import logging
 
 # Constants
 COMPANIES = [
-    {"symbol": "TSLA", "table": "tesla_stock_data2", "name": "Tesla"},
-    {"symbol": "XOM", "table": "exxon_stock_data2", "name": "Exxon"},
+    {"symbol": "TSLA", "table": "tesla_stock_data", "name": "Tesla"},
+    {"symbol": "XOM", "table": "exxon_stock_data", "name": "Exxon"},
 ]
 INTERVAL = "60min"  # Time interval (hourly)
-POSTGRES_CONN_ID = "postgres_default"
-API_CONN_ID = "alpha_vantage_api"
+POSTGRES_CONN_ID = "aiven_postgres"  # PostgreSQL Aiven connection ID
+API_CONN_ID = "alpha_vantage_api"    # Alpha Vantage API connection ID
 
 default_args = {
     "owner": "airflow",
@@ -23,7 +23,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id="alpha_vantage_tesla_exxon_etl",
+    dag_id="alpha_vantage_to_postgres",
     default_args=default_args,
     schedule_interval="@hourly",
     catchup=False,
